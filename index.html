@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Системы мира</title>
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js" } }
+</script>
+</head>
+<body>
+<aside id="ui">
+  <header>
+    <h1>Системы мира</h1>
+    <button id="collapse" title="Свернуть панель">⟨</button>
+  </header>
+
+  <section>
+    <h2>Модели</h2>
+    <div class="models">
+      <label><input type="checkbox" data-model="ptolemy" checked> Птолемей</label>
+      <label><input type="checkbox" data-model="copernicus" checked> Коперник</label>
+      <label><input type="checkbox" data-model="tycho" checked> Тихо Браге</label>
+      <label><input type="checkbox" data-model="kepler" checked> Кеплер</label>
+    </div>
+  </section>
+
+  <section>
+    <h2>Время</h2>
+    <div id="date" class="date"></div>
+    <div class="row">
+      <input id="dateInput" type="text" placeholder="ГГГГ-ММ-ДД ЧЧ:ММ" title="Год — астрономический: 0 = 1 г. до н. э., −1 = 2 г. до н. э. До 15.10.1582 — юлианский календарь.">
+      <button id="dateGo">Перейти</button>
+    </div>
+    <select id="preset">
+      <option value="">— памятные даты —</option>
+      <option value="137-01-01">137 — каталог «Альмагеста»</option>
+      <option value="1543-05-24">1543 — «О вращениях» Коперника</option>
+      <option value="1572-11-11">1572 — Сверхновая Тихо</option>
+      <option value="1577-11-13">1577 — Комета Тихо</option>
+      <option value="1609-01-01">1609 — «Новая астрономия»</option>
+      <option value="1610-01-07">1610 — спутники Юпитера</option>
+      <option value="1627-01-01">1627 — «Рудольфинские таблицы»</option>
+      <option value="now">Сейчас</option>
+    </select>
+    <div class="transport">
+      <button id="stepBack" title="Шаг назад">⏮</button>
+      <button id="play" title="Пуск / пауза">⏸</button>
+      <button id="stepFwd" title="Шаг вперёд">⏭</button>
+      <button id="reverse" title="Обратный ход">⇄</button>
+    </div>
+    <label class="field">Шаг симуляции
+      <select id="step">
+        <option value="0.0069444">10 мин</option>
+        <option value="0.0416667">1 ч</option>
+        <option value="0.25">6 ч</option>
+        <option value="1" selected>1 сут</option>
+        <option value="5">5 сут</option>
+        <option value="30">30 сут</option>
+        <option value="365.25">1 год</option>
+      </select>
+    </label>
+    <label class="field">Скорость: <span id="speedLabel"></span>
+      <input id="speed" type="range" min="0" max="100" value="55">
+    </label>
+  </section>
+
+  <section>
+    <h2>Камера</h2>
+    <div class="seg">
+      <label><input type="radio" name="center" value="earth" checked> Земля</label>
+      <label><input type="radio" name="center" value="sun"> Солнце</label>
+    </div>
+    <div class="row">
+      <button id="viewTop">Сверху</button>
+      <button id="viewSide">Сбоку</button>
+      <button id="viewReset">Сброс</button>
+    </div>
+    <label><input type="checkbox" id="syncCam" checked> Одна камера для всех моделей</label>
+    <p class="hint">Перетаскивание — поворот, колесо — масштаб, двойной щелчок — сброс.</p>
+  </section>
+
+  <section>
+    <h2>Отображение</h2>
+    <label><input type="checkbox" data-show="orbit" checked> Деференты / эксцентры / эллипсы</label>
+    <label><input type="checkbox" data-show="epicycle" checked> Эпициклы и эпициклеты</label>
+    <label><input type="checkbox" data-show="point" checked> Экванты, центры, фокусы</label>
+    <label><input type="checkbox" data-show="line"> Линии построения</label>
+    <label><input type="checkbox" data-show="trails" checked> Следы (относительно центра камеры)</label>
+    <label><input type="checkbox" data-show="stars" checked> Звёздная сфера</label>
+    <label><input type="checkbox" data-show="grid" checked> Плоскость эклиптики</label>
+    <label><input type="checkbox" data-show="equator"> Небесный экватор и ось мира</label>
+    <label><input type="checkbox" data-show="labels" checked> Подписи</label>
+    <label><input type="checkbox" id="diurnal"> Суточное вращение</label>
+    <button id="clearTrails">Очистить следы</button>
+    <label class="field">Размер тел <input id="bodySize" type="range" min="0.3" max="4" step="0.05" value="1.2"></label>
+    <label class="field">Яркость звёзд <input id="starSize" type="range" min="0.4" max="2.5" step="0.05" value="1"></label>
+    <label class="field">Масштаб орбиты Луны: <span id="moonLabel"></span>
+      <input id="moonScale" type="range" min="1" max="50" step="1" value="1"></label>
+  </section>
+
+  <section>
+    <h2>Небо с поверхности</h2>
+    <label><input type="checkbox" id="skyOn"> Показывать под каждой моделью</label>
+    <label class="field">Место наблюдения
+      <select id="observer">
+        <option value="auto">своё у каждой модели</option>
+        <option value="alexandria">Александрия (Птолемей)</option>
+        <option value="frombork">Фромборк (Коперник)</option>
+        <option value="uraniborg">Ураниборг (Тихо Браге)</option>
+        <option value="prague">Прага (Кеплер)</option>
+        <option value="moscow">Москва</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="skyGround" checked> Земля под горизонтом</label>
+    <label><input type="checkbox" id="skyLines" checked> Эклиптика и экватор</label>
+    <label><input type="checkbox" id="skyTrails" checked> Следы планет на фоне звёзд</label>
+    <label><input type="checkbox" id="skyDay"> Подсветка дневного неба</label>
+    <p class="hint">Наблюдатель — на выбранном центре камеры (Земля или Солнце). Перетаскивание — направление взгляда, колесо — поле зрения. Время — всемирное (UT).</p>
+  </section>
+
+  <section>
+    <h2>О моделях</h2>
+    <div id="infos"></div>
+  </section>
+</aside>
+<button id="expand" title="Показать панель">⟩</button>
+<main id="view">
+  <canvas id="gl"></canvas>
+  <canvas id="overlay"></canvas>
+</main>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
