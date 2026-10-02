@@ -48,13 +48,13 @@ export class GuideRenderer {
     return this.materials.get(key);
   }
 
-  update(items, show) {
+  update(items, show, visible = {}) {
     let nLoop = 0, nl = 0, np = 0;
     this.labeled.length = 0;
     const col = new THREE.Color();
     const m = new THREE.Matrix4();
     for (const it of items) {
-      if (!show[it.kind]) continue;
+      if (!show[it.kind] || visible[it.body] === false) continue;
       if (it.t === 'ellipse') {
         let loop = this.loops[nLoop];
         if (!loop) {

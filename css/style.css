@@ -22,6 +22,7 @@ body { display: flex; }
 #ui label.field { margin-top: 8px; color: var(--muted); }
 #ui label.field select, #ui label.field input[type=range] { display: block; width: 100%; margin-top: 3px; }
 #ui .models label, #ui .seg label { display: inline-block; margin-right: 10px; }
+#ui .bodies { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; }
 .row { display: flex; gap: 6px; margin: 6px 0; }
 .row input { flex: 1; min-width: 0; }
 button, select, input[type=text] { background: var(--panel2); color: var(--text); border: 1px solid var(--line);

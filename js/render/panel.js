@@ -267,12 +267,19 @@ export class Panel {
     this.grid.position.set(...(m.geocentric ? pos.earth : [0, 0, 0]));
     this.grid.visible = st.show.grid;
 
-    for (const b of BODIES) this.meshes[b].position.set(...pos[b]);
+    for (const b of BODIES) {
+      this.meshes[b].position.set(...pos[b]);
+      this.meshes[b].visible = st.visible[b];
+      this.trails[b].line.visible = st.visible[b];
+      if (this.skyTrails[b]) this.skyTrails[b].line.visible = st.visible[b];
+    }
+    this.starPoints.visible = st.starsOn;
+    this.skyStarRot.visible = st.starsOn;
     this.light.position.set(...pos.sun);
     this.earthTilt.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), poleV);
     this.earthSpin.rotation.y = theta * D;
 
-    this.guides.update(res.guides, st.show);
+    this.guides.update(res.guides, st.show, st.visible);
     this.guides.group.visible = true;
     this.trailGroup.position.set(...pos[st.center]);
     this.trailGroup.visible = st.show.trails;
@@ -281,7 +288,7 @@ export class Panel {
     const obsKey = st.center;
     const o = pos[obsKey];
     BODIES.forEach((b, i) => {
-      if (b === obsKey) { this.skyPos.set([0, 0, 0], i * 3); this.skySize[i] = 0; return; }
+      if (b === obsKey || !st.visible[b]) { this.skyPos.set([0, 0, 0], i * 3); this.skySize[i] = 0; return; }
       const d = unit(sub(pos[b], o));
       this.skyPos.set([d[0] * SKY_R, d[1] * SKY_R, d[2] * SKY_R], i * 3);
       this.skySize[i] = b === 'sun' ? 26 : b === 'moon' ? 20 : b === 'earth' ? 11 : 6 + BODY_INFO[b].size * 3;
@@ -300,7 +307,8 @@ export class Panel {
       M.set(R[0][0], R[0][1], R[0][2], 0, R[1][0], R[1][1], R[1][2], 0, R[2][0], R[2][1], R[2][2], 0, 0, 0, 0, 1);
       this.ground.visible = st.sky.ground;
       this.horizon.visible = true;
-      this.sunAlt = R[1][0] * this.skyPos[0] + R[1][1] * this.skyPos[1] + R[1][2] * this.skyPos[2];
+      const ds = unit(sub(pos.sun, o));
+      this.sunAlt = (R[1][0] * ds[0] + R[1][1] * ds[1] + R[1][2] * ds[2]) * SKY_R;
     } else {
       M.copy(ECL_TO_THREE);
       this.ground.visible = this.horizon.visible = false;
@@ -331,7 +339,7 @@ export class Panel {
 
     renderer.setViewport(rect.x, rect.gy, rect.w, rect.h);
     renderer.setScissor(rect.x, rect.gy, rect.w, rect.h);
-    renderer.setClearColor(0x05070d);
+    renderer.setClearColor(st.starsOn ? 0x05070d : 0x000000);
     renderer.clear();
     renderer.render(this.scene, this.camera);
 
@@ -339,6 +347,7 @@ export class Panel {
       ctx.font = '12px system-ui, sans-serif';
       const f = (rect.h / 2) / Math.tan((this.camera.fov / 2) * D);
       for (const b of BODIES) {
+        if (!st.visible[b]) continue;
         const p = v3(pos[b]).applyMatrix4(this.heavens.matrixWorld);
         const px = (k * BODY_INFO[b].size / Math.max(1e-6, this.camera.position.distanceTo(p))) * f;
         this.label(ctx, rect, this.camera, p, BODY_INFO[b].name, BODY_INFO[b].color, Math.max(7, px * 0.8 + 3));
@@ -370,7 +379,7 @@ export class Panel {
     const day = Math.max(0, Math.min(1, (this.sunAlt / SKY_R + 0.1) / 0.3));
     renderer.setViewport(rect.x, rect.gy, rect.w, rect.h);
     renderer.setScissor(rect.x, rect.gy, rect.w, rect.h);
-    renderer.setClearColor(new THREE.Color(0x03050a).lerp(new THREE.Color(0x1c3558), st.sky.daylight ? day : 0));
+    renderer.setClearColor(new THREE.Color(st.starsOn ? 0x03050a : 0x000000).lerp(new THREE.Color(0x1c3558), st.sky.daylight ? day : 0));
     renderer.clear();
     this.skyScene.updateMatrixWorld();
     renderer.render(this.skyScene, c);
@@ -378,7 +387,7 @@ export class Panel {
     ctx.font = '12px system-ui, sans-serif';
     const p = new THREE.Vector3();
     BODIES.forEach((b, i) => {
-      if (b === st.center) return;
+      if (b === st.center || !st.visible[b]) return;
       p.set(this.skyPos[i * 3], this.skyPos[i * 3 + 1], this.skyPos[i * 3 + 2]).applyMatrix4(this.skyRoot.matrixWorld);
       if (this.ground.visible && p.y < -0.5) return;
       this.label(ctx, rect, c, p, BODY_INFO[b].name, BODY_INFO[b].color, b === 'sun' || b === 'moon' ? 14 : 8);

@@ -31,7 +31,9 @@ const state = {
   bodySize: 1.2,
   starSize: 1,
   moonScale: 1,
-  observer: 'auto',
+  observer: 'moscow',
+  visible: { sun: true, moon: true, earth: true, mercury: true, venus: true, mars: true, jupiter: true, saturn: true },
+  starsOn: true,
   sky: { on: false, ground: true, lines: true, trails: true, daylight: false },
 };
 
@@ -277,6 +279,13 @@ function bind() {
   moonLbl();
 
   $('skyOn').onchange = (e) => { state.sky.on = e.target.checked; };
+  document.querySelectorAll('[data-body]').forEach((el) => {
+    el.checked = state.visible[el.dataset.body];
+    el.addEventListener('change', () => { state.visible[el.dataset.body] = el.checked; });
+  });
+  $('starsOn').checked = state.starsOn;
+  $('starsOn').onchange = (e) => { state.starsOn = e.target.checked; };
+  $('observer').value = state.observer;
   $('observer').onchange = (e) => { state.observer = e.target.value; };
   $('skyGround').onchange = (e) => { state.sky.ground = e.target.checked; };
   $('skyLines').onchange = (e) => { state.sky.lines = e.target.checked; };

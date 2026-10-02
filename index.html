@@ -82,6 +82,22 @@
   </section>
 
   <section>
+    <h2>Объекты</h2>
+    <div class="bodies">
+      <label><input type="checkbox" data-body="sun" checked> Солнце</label>
+      <label><input type="checkbox" data-body="moon" checked> Луна</label>
+      <label><input type="checkbox" data-body="earth" checked> Земля</label>
+      <label><input type="checkbox" data-body="mercury" checked> Меркурий</label>
+      <label><input type="checkbox" data-body="venus" checked> Венера</label>
+      <label><input type="checkbox" data-body="mars" checked> Марс</label>
+      <label><input type="checkbox" data-body="jupiter" checked> Юпитер</label>
+      <label><input type="checkbox" data-body="saturn" checked> Сатурн</label>
+    </div>
+    <label><input type="checkbox" id="starsOn" checked> Звёздное небо</label>
+    <p class="hint">Скрытое тело убирается вместе с подписью, следом и своими кругами. Без звёзд фон чёрный.</p>
+  </section>
+
+  <section>
     <h2>Отображение</h2>
     <label><input type="checkbox" data-show="orbit" checked> Деференты / эксцентры / эллипсы</label>
     <label><input type="checkbox" data-show="epicycle" checked> Эпициклы и эпициклеты</label>
@@ -105,12 +121,12 @@
     <label><input type="checkbox" id="skyOn"> Показывать под каждой моделью</label>
     <label class="field">Место наблюдения
       <select id="observer">
-        <option value="auto">своё у каждой модели</option>
+        <option value="auto">своё у каждой модели (Александрия, Фромборк, Ураниборг, Прага)</option>
+        <option value="moscow" selected>Москва</option>
         <option value="alexandria">Александрия (Птолемей)</option>
         <option value="frombork">Фромборк (Коперник)</option>
         <option value="uraniborg">Ураниборг (Тихо Браге)</option>
         <option value="prague">Прага (Кеплер)</option>
-        <option value="moscow">Москва</option>
       </select>
     </label>
     <label><input type="checkbox" id="skyGround" checked> Земля под горизонтом</label>

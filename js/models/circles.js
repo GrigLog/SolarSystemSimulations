@@ -7,17 +7,34 @@ import { D, u2, tiltFrame } from '../astro.js';
  * равномерно идёт по деференту радиуса R, планета — по эпициклету радиуса r с двойной
  * угловой скоростью и стоит в его ближайшей к центру точке, когда центр в апогее.
  * Это равномерная замена экванта Птолемея: d + r = 2e, d : r = 3 : 1.
+ * Если задан p.libr, планета вдобавок качается вдоль радиуса деферента (пара Туси, V.25):
+ * смещение δ = −libr·cos ψ, где ψ — фаза либрации (градусы).
  * Возвращает 3D-вектор относительно центра системы (в тех же единицах).
  */
-export function epicycletPlanet(key, p, meanLon, A, node, incl, g) {
+export function epicycletPlanet(key, p, meanLon, A, node, incl, g, psi = 0) {
   const alpha = meanLon - A;
   const tf = tiltFrame(node, incl);
   const ca = Math.cos(A * D), sa = Math.sin(A * D);
   const M = (x, y) => tf.map(x * ca - y * sa, x * sa + y * ca);
-  const R = p.Rnow ?? p.R;
+  const R = p.R;
   const u = u2(alpha), w = u2(2 * alpha);
   const E = [p.d + R * u[0], R * u[1]];          // центр эпициклета
-  const P = [E[0] - p.r * w[0], E[1] - p.r * w[1]];
+  const Q = [E[0] - p.r * w[0], E[1] - p.r * w[1]]; // точка на эпициклете
+  let P = Q;
+  if (p.libr) {
+    // Пара Туси: малый круг радиуса L/2 катится внутри большого радиуса L (центр Q);
+    // точка малого круга движется по диаметру большого, направленному вдоль радиуса u.
+    const L = p.libr, th = psi + 180;
+    const t = u2(alpha + 90), c = Math.cos(th * D), s = Math.sin(th * D);
+    P = [Q[0] + L * c * u[0], Q[1] + L * c * u[1]];
+    if (g) {
+      const C = [Q[0] + (L / 2) * (c * u[0] + s * t[0]), Q[1] + (L / 2) * (c * u[1] + s * t[1])];
+      const ex = M(1, 0), ey = M(0, 1);
+      g.circle(key, 'epicycle', M(Q[0], Q[1]), ex, ey, L);
+      g.circle(key, 'epicycle', M(C[0], C[1]), ex, ey, L / 2);
+      g.line(key, 'epicycle', M(Q[0] - L * u[0], Q[1] - L * u[1]), M(Q[0] + L * u[0], Q[1] + L * u[1]));
+    }
+  }
   if (g) {
     const C3 = M(p.d, 0), E3 = M(E[0], E[1]);
     g.circle(key, 'orbit', C3, M(1, 0), M(0, 1), R);
